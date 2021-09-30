@@ -6,25 +6,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Fetch and graph csv</title>
+    <script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.5.1/chart.min.js'></script>
     <!-- <link rel="stylesheet" href="style.css"> -->
 </head>
 
 <body>
+    <canvas id="chart" width="auto" height="auto"></canvas>
     <script>
-        
+
+        chartIt();
+
+        async function chartIt() { //issue of the chart and data not loading properly together, so have to make chartit async too and wait for data to be loaded
+            const data = await getData();
+            const ctx = document.getElementById("chart").getContext('2d');
+            const myChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.xs,
+                    datasets: [{
+                        label: 'Global Avg Temperature',
+                        data: data.ys,
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        borderColor: 'rgba(255,99,132,1)',
+                        borderWidth: 1
+                    }]
+                },
+                // options: {
+                //     scales: {
+                //         yAxes: [{
+                //             ticks: {
+                //                 beginAtZero: true
+                //             }
+                //         }]
+                //     }
+                // }
+            });
+        }
+
         getData();
+        const xs = [];
+        const ys = [];
+
+
         async function getData() {
             const response = await fetch('data.csv');
             const data = await response.text();
             console.log(data);
 
             const table = data.split('\n').slice(1);
-            table.forEach(ele => {
-                const row = ele.split(',')
-                const year = row[0];
-                const temp = row[1];
+            table.forEach(row => {
+                const cols = row.split(',')
+                const year = cols[0];
+                xs.push(year);
+                const temp = cols[1];
+                ys.push(parseFloat(temp));
                 console.log(year, temp)
-            })
+            });
+            return { xs, ys };
         }
     </script>
 </body>
